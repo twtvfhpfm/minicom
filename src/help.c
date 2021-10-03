@@ -52,7 +52,7 @@ int help(void)
   mc_wlocate(w, 47, 4);
   mc_wputs(w, _("Other Functions"));
   mc_wlocate(w, 0, 6);
-  mc_wputs(w, _(" Dialing directory..D  run script (Go)....G | Clear Screen.......C\n"));
+  mc_wputs(w, _(" Send command.......D  run script (Go)....G | Clear Screen.......C\n"));
   mc_wputs(w, _(" Send files.........S  Receive files......R | cOnfigure Minicom..O\n"));
   mc_wputs(w, _(" comm Parameters....P  Add linefeed.......A | "));
 #ifdef SIGTSTP

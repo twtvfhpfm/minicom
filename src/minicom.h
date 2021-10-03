@@ -229,7 +229,7 @@ void timer_update(void);
 void show_status(void);
 void set_status_line_format(const char *s);
 void scriptname(const char *s);
-int  do_terminal(void);
+int  do_terminal(char*, char*);
 void status_set_display(const char *text, int duration_s);
 
 /* Prototypes from file: minicom.c */

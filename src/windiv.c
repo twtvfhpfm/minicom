@@ -172,7 +172,7 @@ char *input(char *s, char *buf)
   mc_wlocate(w, 0, 1);
   mc_wprintf(w, "> %-38.38s", buf);
   mc_wlocate(w, 2, 1);
-  if (mc_wgets(w, buf, 38, 128) < 0)
+  if (mc_wgets(w, buf, 38, 1024) < 0)
     buf = NULL;
   mc_wclose(w, 1);
   return buf;

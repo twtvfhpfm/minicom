@@ -734,7 +734,7 @@ static void showtemp(void)
  *	- If there are characters received send them
  *	  to the screen via the appropriate translate function.
  */
-int do_terminal(void)
+int do_terminal(char* cmdline_device, char* cmdline_baudrate)
 {
   char buf[128];
   int buf_offset = 0;
@@ -770,6 +770,9 @@ dirty_goto:
 
   /* Main loop */
   while (1) {
+    if (docap){
+      enable_log(cmdline_device, cmdline_baudrate);
+    }
     /* See if window size changed */
     if (size_changed) {
       size_changed = 0;

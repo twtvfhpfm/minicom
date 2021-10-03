@@ -1004,6 +1004,53 @@ static void close_iconv(void)
 #endif
 /* -------------------------------------------- */
 
+static void send_input(void)
+{
+  char ifile[1024];
+  char *s;
+
+  ifile[0] = 0;
+  s = input(_("enter command"), ifile);
+  int i;
+  if (s == NULL)
+  {
+    return;
+  }
+  for(i = 0; i < strlen(s); i++)
+  {
+    unsigned char uc = s[i];
+    vt_send(uc);
+  }
+}
+
+void enable_log(char* cmdline_device, char* cmdline_baudrate)
+{
+  struct tm *ptr;
+  time_t    ttime;
+  ttime = time(NULL);
+  ptr = localtime(&ttime);
+  static char last_log_file_name[256] = {0};
+  char log_file_name[256] = {0};
+  sprintf(log_file_name, "%s/Documents/log/%s-%s-%04d%02d%02d-%02d.log", getenv("HOME"), cmdline_device+5,
+    cmdline_baudrate, (ptr->tm_year)+1900, (ptr->tm_mon)+1, ptr->tm_mday, ptr->tm_hour);
+  if (strcmp(log_file_name, last_log_file_name) == 0)
+  {
+    return;
+  }
+  strcpy(last_log_file_name, log_file_name);
+  printf("logging to %s\n", log_file_name);
+
+  if (capfp != NULL){
+    fclose(capfp);
+  }
+  capfp = fopen(log_file_name, "a");
+  if (capfp == NULL) {
+    werror(_("Cannot open capture file: %s"), log_file_name);
+    exit(1);
+  }
+  docap = 1;
+  vt_set(addlf, -1, docap, -1, -1, -1, -1, -1, addcr);
+}
 
 int main(int argc, char **argv)
 {
@@ -1067,11 +1114,11 @@ int main(int argc, char **argv)
   docap = 0;
   online = -1;
   linespd = 0;
-  stdattr = XA_NORMAL;
+  stdattr = XA_BOLD;
   us = NULL;
   addlf = 0;
   addcr = 0;
-  line_timestamp = 0;
+  line_timestamp = 2;
   wrapln = 0;
   display_hex = 0;
   option_T_used = 0;
@@ -1082,11 +1129,11 @@ int main(int argc, char **argv)
   st = NULL;
   us = NULL;
   bogus_dcd = 0;
-  usecolor = 0;
+  usecolor = 1;
   screen_ibmpc = screen_iso = 1;
   useattr = 1;
   strncpy(termtype, getenv("TERM") ? getenv("TERM") : "dumb", sizeof(termtype));
-  stdattr = XA_NORMAL;
+  stdattr = XA_BOLD;
   use_port = "dfl";
   alt_override = 0;
   scr_name[0] = 0;
@@ -1299,6 +1346,73 @@ int main(int argc, char **argv)
     /* Loop again if more options */
   } while (optind < argk);
 
+  /* set uart device */
+  char* device_tbl[][2] = {
+    {"1", "/dev/ttyUSB0"},
+    {"2", "/dev/ttyUSB1"},
+    {"3", "/dev/ttyUSB2"},
+    {"4", "/dev/ttyUSB3"},
+    {"5", "/dev/ttyUSB4"},
+    {"6", "/dev/ttyUSB5"},
+    {"7", "/dev/ttyUSB6"},
+    {"8", "/dev/ttyS0"},
+    {"9", "/dev/ttyS1"},
+  };
+  printf("choose uart device:\n----------------\n");
+  int dt_idx;
+  for(dt_idx = 0; dt_idx < sizeof(device_tbl)/sizeof(device_tbl[0]); dt_idx++){
+    printf("%s - %s\n", device_tbl[dt_idx][0], device_tbl[dt_idx][1]);
+  }
+  printf("----------------\n>");
+  char dt_c[128] = {0};
+  scanf("%s", dt_c);
+  for(dt_idx = 0; dt_idx < sizeof(device_tbl)/sizeof(device_tbl[0]); dt_idx++){
+    if (strcmp(dt_c, device_tbl[dt_idx][0]) == 0){
+      cmdline_device = device_tbl[dt_idx][1];
+      break;
+    }
+  }
+
+  if (NULL == cmdline_device){
+    cmdline_device = dt_c;
+  }
+  printf("uart device: %s\n", cmdline_device);
+
+  /* set baudrate */
+  char* baudrate_tbl[][2] = {
+    {"1", "9600"},
+    {"2", "19200"},
+    {"3", "38400"},
+    {"4", "57600"},
+    {"5", "115200"},
+  };
+  printf("choose uart baudrate:\n----------------\n");
+  int bt_idx;
+  for(bt_idx = 0; bt_idx < sizeof(baudrate_tbl)/sizeof(baudrate_tbl[0]); bt_idx++){
+    printf("%s - %s\n", baudrate_tbl[bt_idx][0], baudrate_tbl[bt_idx][1]);
+  }
+  printf("----------------\n>");
+  char bt_c[128] = {0};
+  scanf("%s", bt_c);
+  for(bt_idx = 0; bt_idx < sizeof(baudrate_tbl)/sizeof(baudrate_tbl[0]); bt_idx++){
+    if (strcmp(bt_c, baudrate_tbl[bt_idx][0]) == 0){
+      cmdline_baudrate = baudrate_tbl[bt_idx][1];
+      break;
+    }
+  }
+
+  if (cmdline_baudrate == NULL){
+    cmdline_baudrate = bt_c;
+  }
+
+  printf("baudrate: %s\n", cmdline_baudrate);
+
+
+
+  /* enable logging */
+
+  enable_log(cmdline_device, cmdline_baudrate);
+
   init_iconv(remote_charset);
 
   if (screen_iso && screen_ibmpc)
@@ -1499,7 +1613,7 @@ int main(int argc, char **argv)
 
   /* The main loop calls do_terminal and gets a function key back. */
   while (!quit) {
-    c = do_terminal();
+    c = do_terminal(cmdline_device, cmdline_baudrate);
 dirty_goto:
     switch (c + 32 *(c >= 'A' && c <= 'Z')) {
       case 'a': /* Add line feed */
@@ -1615,7 +1729,7 @@ dirty_goto:
         do_hang(1);
         break;
       case 'd': /* Dial */
-        dialdir();
+        send_input();
         break;
       case 't': /* Terminal emulation */
         c = dotermmenu();
