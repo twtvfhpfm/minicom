@@ -289,6 +289,9 @@ void werror(const char *, ...);
 int ask(const char *what, const char *s[]);
 char *input(char *s, char *buf);
 
+/* Prototypes from file: cmdsave.c */
+void send_command_dialog(void);
+
 /* Prototypes from file: wildmat.c */
 int wildmat(const char *, const char *);
 

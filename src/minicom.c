@@ -1004,25 +1004,6 @@ static void close_iconv(void)
 #endif
 /* -------------------------------------------- */
 
-static void send_input(void)
-{
-  char ifile[1024];
-  char *s;
-
-  ifile[0] = 0;
-  s = input(_("enter command"), ifile);
-  int i;
-  if (s == NULL)
-  {
-    return;
-  }
-  for(i = 0; i < strlen(s); i++)
-  {
-    unsigned char uc = s[i];
-    vt_send(uc);
-  }
-}
-
 void enable_log(char* cmdline_device, char* cmdline_baudrate)
 {
   struct tm *ptr;
@@ -1728,8 +1709,8 @@ dirty_goto:
       case 'h': /* Hang up */
         do_hang(1);
         break;
-      case 'd': /* Dial */
-        send_input();
+      case 'd': /* Send command */
+        send_command_dialog();
         break;
       case 't': /* Terminal emulation */
         c = dotermmenu();

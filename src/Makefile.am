@@ -8,7 +8,7 @@ dist_bin_SCRIPTS = xminicom
 minicom_SOURCES = minicom.c vt100.c config.c help.c updown.c \
 	util.c dial.c window.c wkeys.c ipc.c \
 	windiv.c sysdep1.c sysdep1_s.c sysdep2.c rwconf.c main.c \
-	file.c getsdir.c wildmat.c common.c
+	file.c getsdir.c wildmat.c common.c cmdsave.c
 
 noinst_HEADERS = configsym.h defmap.h \
 	getsdir.h intl.h keyboard.h minicom.h \
